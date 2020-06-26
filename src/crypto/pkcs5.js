@@ -26,7 +26,7 @@
  * @param  {String}  msg  Text to add padding
  * @returns {String}       Text with padding added
  */
-function encode(msg) {
+export function encode(msg) {
   const c = 8 - (msg.length % 8);
   const padding = String.fromCharCode(c).repeat(c);
   return msg + padding;
@@ -37,7 +37,7 @@ function encode(msg) {
  * @param  {String}  msg  Text to remove padding from
  * @returns {String}       Text with padding removed
  */
-function decode(msg) {
+export function decode(msg) {
   const len = msg.length;
   if (len > 0) {
     const c = msg.charCodeAt(len - 1);
@@ -51,5 +51,3 @@ function decode(msg) {
   }
   throw new Error('Invalid padding');
 }
-
-export default { encode, decode };

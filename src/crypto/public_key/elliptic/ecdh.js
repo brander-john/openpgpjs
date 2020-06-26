@@ -32,10 +32,10 @@
 
 import BN from 'bn.js';
 import nacl from 'tweetnacl/nacl-fast-light.js';
-import Curve, { jwkToRawPublic, rawPublicToJwk, privateToJwk, validateStandardParams } from './curves';
-import aes_kw from '../../aes_kw';
-import cipher from '../../cipher';
-import random from '../../random';
+import { Curve, jwkToRawPublic, rawPublicToJwk, privateToJwk, validateStandardParams } from './curves';
+import * as aes_kw from '../../aes_kw';
+import * as cipher from '../../cipher';
+import { getRandomBytes } from '../../random';
 import hash from '../../hash';
 import enums from '../../../enums';
 import util from '../../../util';
@@ -52,7 +52,7 @@ const nodeCrypto = util.getNodeCrypto();
  * @returns {Promise<Boolean>} whether params are valid
  * @async
  */
-async function validateParams(oid, Q, d) {
+export async function validateParams(oid, Q, d) {
   return validateStandardParams(enums.publicKey.ecdh, oid, Q, d);
 }
 
@@ -73,7 +73,7 @@ function buildEcdhParam(public_algo, oid, kdfParams, fingerprint) {
  * @returns {Object} parameters in the form
  *  { oid, kdfParams, d: Uint8Array, Q: Uint8Array }
  */
-function parseParams(params) {
+export function parseParams(params) {
   if (params.length < 3 || params.length > 4) {
     throw new Error('Unexpected number of parameters');
   }
@@ -127,7 +127,7 @@ async function kdf(hash_algo, X, length, param, stripLeading = false, stripTrail
 async function genPublicEphemeralKey(curve, Q) {
   switch (curve.type) {
     case 'curve25519': {
-      const d = await random.getRandomBytes(32);
+      const d = await getRandomBytes(32);
       const { secretKey, sharedKey } = await genPrivateEphemeralKey(curve, Q, null, d);
       let { publicKey } = nacl.box.keyPair.fromSecretKey(secretKey);
       publicKey = util.concatUint8Array([new Uint8Array([0x40]), publicKey]);
@@ -159,7 +159,7 @@ async function genPublicEphemeralKey(curve, Q) {
  * @returns {Promise<{publicKey: Uint8Array, wrappedKey: Uint8Array}>}
  * @async
  */
-async function encrypt(oid, kdfParams, m, Q, fingerprint) {
+export async function encrypt(oid, kdfParams, m, Q, fingerprint) {
   const curve = new Curve(oid);
   const { publicKey, sharedKey } = await genPublicEphemeralKey(curve, Q);
   const param = buildEcdhParam(enums.publicKey.ecdh, oid, kdfParams, fingerprint);
@@ -219,7 +219,7 @@ async function genPrivateEphemeralKey(curve, V, Q, d) {
  * @returns {Promise<BN>}                        Value derived from session key
  * @async
  */
-async function decrypt(oid, kdfParams, V, C, Q, d, fingerprint) {
+export async function decrypt(oid, kdfParams, V, C, Q, d, fingerprint) {
   const curve = new Curve(oid);
   const { sharedKey } = await genPrivateEphemeralKey(curve, V, Q, d);
   const param = buildEcdhParam(enums.publicKey.ecdh, oid, kdfParams, fingerprint);
@@ -410,5 +410,3 @@ async function nodePublicEphemeralKey(curve, Q) {
   const publicKey = new Uint8Array(sender.getPublicKey());
   return { publicKey, sharedKey };
 }
-
-export default { encrypt, decrypt, genPublicEphemeralKey, genPrivateEphemeralKey, buildEcdhParam, kdf, webPublicEphemeralKey, webPrivateEphemeralKey, ellipticPublicEphemeralKey, ellipticPrivateEphemeralKey, nodePublicEphemeralKey, nodePrivateEphemeralKey, validateParams, parseParams };

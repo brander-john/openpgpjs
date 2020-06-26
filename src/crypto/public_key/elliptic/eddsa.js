@@ -42,7 +42,7 @@ nacl.hash = bytes => new Uint8Array(sha512().update(bytes).digest());
  *            S: Uint8Array}}               Signature of the message
  * @async
  */
-async function sign(oid, hash_algo, message, publicKey, privateKey, hashed) {
+export async function sign(oid, hash_algo, message, publicKey, privateKey, hashed) {
   const secretKey = util.concatUint8Array([privateKey, publicKey.subarray(1)]);
   const signature = nacl.sign.detached(hashed, secretKey);
   // EdDSA signature params are returned in little-endian format
@@ -64,11 +64,10 @@ async function sign(oid, hash_algo, message, publicKey, privateKey, hashed) {
  * @returns {Boolean}
  * @async
  */
-async function verify(oid, hash_algo, { R, S }, m, publicKey, hashed) {
+export async function verify(oid, hash_algo, { R, S }, m, publicKey, hashed) {
   const signature = util.concatUint8Array([R, S]);
   return nacl.sign.detached.verify(hashed, signature, publicKey.subarray(1));
 }
-
 /**
  * Validate EdDSA parameters
  * @param {module:type/oid}    oid Elliptic curve object identifier
@@ -77,7 +76,7 @@ async function verify(oid, hash_algo, { R, S }, m, publicKey, hashed) {
  * @returns {Promise<Boolean>} whether params are valid
  * @async
  */
-async function validateParams(oid, Q, k) {
+export async function validateParams(oid, Q, k) {
   // Check whether the given curve is supported
   if (oid.getName() !== 'ed25519') {
     return false;
@@ -98,7 +97,7 @@ async function validateParams(oid, Q, k) {
  * @returns {Object} parameters in the form
  *  { oid, seed: Uint8Array, Q: Uint8Array }
  */
-function parseParams(params) {
+export function parseParams(params) {
   if (params.length < 2 || params.length > 3) {
     throw new Error('Unexpected number of parameters');
   }
@@ -114,6 +113,3 @@ function parseParams(params) {
 
   return parsedParams;
 }
-
-
-export default { sign, verify, validateParams, parseParams };

@@ -26,14 +26,9 @@
  * @module crypto/pkcs1
  */
 
-import random from './random';
+import { getRandomBytes } from './random';
 import hash from './hash';
 import util from '../util';
-
-/** @namespace */
-const eme = {};
-/** @namespace */
-const emsa = {};
 
 /**
  * ASN1 object identifiers for hashes
@@ -63,7 +58,7 @@ hash_headers[11] = [0x30, 0x2d, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 
 async function getPkcs1Padding(length) {
   let result = '';
   while (result.length < length) {
-    const randomBytes = await random.getRandomBytes(length - result.length);
+    const randomBytes = await getRandomBytes(length - result.length);
     for (let i = 0; i < randomBytes.length; i++) {
       if (randomBytes[i] !== 0) {
         result += String.fromCharCode(randomBytes[i]);
@@ -81,7 +76,7 @@ async function getPkcs1Padding(length) {
  * @returns {Promise<String>} EME-PKCS1 padded message
  * @async
  */
-eme.encode = async function(M, k) {
+export async function emeEncode(M, k) {
   const mLen = M.length;
   // length checking
   if (mLen > k - 11) {
@@ -97,7 +92,7 @@ eme.encode = async function(M, k) {
     PS +
     String.fromCharCode(0) +
     M;
-};
+}
 
 /**
  * Decode a EME-PKCS1-v1_5 padded message
@@ -105,7 +100,7 @@ eme.encode = async function(M, k) {
  * @param {String} EM encoded message, an octet string
  * @returns {String} message, an octet string
  */
-eme.decode = function(EM) {
+export function emeDecode(EM) {
   // leading zeros truncated by bn.js
   if (EM.charCodeAt(0) !== 0) {
     EM = String.fromCharCode(0) + EM;
@@ -122,7 +117,7 @@ eme.decode = function(EM) {
     return EM.substr(i);
   }
   throw new Error('Decryption error');
-};
+}
 
 /**
  * Create a EMSA-PKCS1-v1_5 padded message
@@ -132,7 +127,7 @@ eme.decode = function(EM) {
  * @param {Integer} emLen intended length in octets of the encoded message
  * @returns {String} encoded message
  */
-emsa.encode = async function(algo, hashed, emLen) {
+export async function emsaEncode(algo, hashed, emLen) {
   let i;
   const H = util.uint8ArrayToStr(hashed);
   if (H.length !== hash.getHashByteLength(algo)) {
@@ -165,6 +160,4 @@ emsa.encode = async function(algo, hashed, emLen) {
         String.fromCharCode(0x00) +
         T;
   return util.strToHex(EM);
-};
-
-export default { eme, emsa };
+}

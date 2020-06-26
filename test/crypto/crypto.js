@@ -354,9 +354,9 @@ module.exports = () => describe('API functional testing', function() {
       testAESGCM("12345678901234567890123456789012345678901234567890", false);
     });
 
-    it('Asymmetric using RSA with eme_pkcs1 padding', function () {
+    it('Asymmetric using RSA with eme_pkcs1 padding', async function () {
       const symmKey = util.uint8ArrayToStr(crypto.generateSessionKey('aes256'));
-      crypto.publicKeyEncrypt(1, RSApubMPIs, symmKey).then(RSAEncryptedData => {
+      await crypto.publicKeyEncrypt(1, RSApubMPIs, symmKey).then(RSAEncryptedData => {
         return crypto.publicKeyDecrypt(
           1, RSApubMPIs.concat(RSAsecMPIs), RSAEncryptedData
         ).then(data => {
@@ -367,9 +367,9 @@ module.exports = () => describe('API functional testing', function() {
       });
     });
 
-    it('Asymmetric using Elgamal with eme_pkcs1 padding', function () {
+    it('Asymmetric using Elgamal with eme_pkcs1 padding', async function () {
       const symmKey = util.uint8ArrayToStr(crypto.generateSessionKey('aes256'));
-      crypto.publicKeyEncrypt(16, ElgamalpubMPIs, symmKey).then(ElgamalEncryptedData => {
+      await crypto.publicKeyEncrypt(16, ElgamalpubMPIs, symmKey).then(ElgamalEncryptedData => {
         return crypto.publicKeyDecrypt(
           16, ElgamalpubMPIs.concat(ElgamalsecMPIs), ElgamalEncryptedData
         ).then(data => {

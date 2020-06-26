@@ -23,11 +23,7 @@
  */
 
 import BN from 'bn.js';
-import random from '../random';
-
-export default {
-  randomProbablePrime, isProbablePrime, fermat, millerRabin, divisionTest
-};
+import { getRandomBN } from '../random';
 
 /**
  * Probabilistic random number generator
@@ -37,7 +33,7 @@ export default {
  * @returns BN
  * @async
  */
-async function randomProbablePrime(bits, e, k) {
+export async function randomProbablePrime(bits, e, k) {
   const min = new BN(1).shln(bits - 1);
   const thirty = new BN(30);
   /*
@@ -48,7 +44,7 @@ async function randomProbablePrime(bits, e, k) {
    */
   const adds = [1, 6, 5, 4, 3, 2, 1, 4, 3, 2, 1, 2, 1, 4, 3, 2, 1, 2, 1, 4, 3, 2, 1, 6, 5, 4, 3, 2, 1, 2];
 
-  let n = await random.getRandomBN(min, min.shln(1));
+  let n = await getRandomBN(min, min.shln(1));
   let i = n.mod(thirty).toNumber();
 
   do {
@@ -71,7 +67,7 @@ async function randomProbablePrime(bits, e, k) {
  * @returns {boolean}
  * @async
  */
-async function isProbablePrime(n, e, k) {
+export async function isProbablePrime(n, e, k) {
   if (e && !n.subn(1).gcd(e).eqn(1)) {
     return false;
   }
@@ -96,12 +92,12 @@ async function isProbablePrime(n, e, k) {
  * @param {Integer} b Optional Fermat test base
  * @returns {boolean}
  */
-function fermat(n, b) {
+export function fermat(n, b) {
   b = b || new BN(2);
   return b.toRed(BN.mont(n)).redPow(n.subn(1)).fromRed().cmpn(1) === 0;
 }
 
-function divisionTest(n) {
+export function divisionTest(n) {
   return small_primes.every(m => {
     return n.modn(m) !== 0;
   });
@@ -229,7 +225,7 @@ const small_primes = [
  * @returns {boolean}
  * @async
  */
-async function millerRabin(n, k, rand) {
+export async function millerRabin(n, k, rand) {
   const len = n.bitLength();
   const red = BN.mont(n);
   const rone = new BN(1).toRed(red);
@@ -247,7 +243,7 @@ async function millerRabin(n, k, rand) {
   const d = n.shrn(s);
 
   for (; k > 0; k--) {
-    const a = rand ? rand() : await random.getRandomBN(new BN(2), n1);
+    const a = rand ? rand() : await getRandomBN(new BN(2), n1);
 
     let x = a.toRed(red).redPow(d);
     if (x.eq(rone) || x.eq(rn1)) {
